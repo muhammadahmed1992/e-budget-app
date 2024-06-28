@@ -33,7 +33,7 @@ namespace e_budget_app.Controllers
                             {
                                 TransactionCategory transactionCategory = new TransactionCategory
                                 {
-                                    Id = (int)sqlDataReader["CategoryId"],
+                                    Id = (int)sqlDataReader["CategoryID"],
                                     Name = sqlDataReader["Name"].ToString()
                                 };
                                 transactionCategories.Add(transactionCategory);
@@ -58,7 +58,7 @@ namespace e_budget_app.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateUser([FromBody] TransactionCategoryDto transactionCategoryDto)
+        public IActionResult CreateTransactionCategory([FromBody] TransactionCategoryDto transactionCategoryDto)
         {
             try
             {
@@ -73,11 +73,11 @@ namespace e_budget_app.Controllers
 
                         connection.Open();
 
-                        Int32? categoryId = (Int32)cmd.ExecuteScalar();
+                        Int32? CategoryID = (Int32)cmd.ExecuteScalar();
 
-                        if (categoryId != null)
+                        if (CategoryID != null)
                         {
-                            return Ok($"Category Created with ID: {categoryId}");
+                            return Ok($"Category Created with ID: {CategoryID}");
                         }
                         else
                         {
@@ -111,10 +111,11 @@ namespace e_budget_app.Controllers
                     {
                         string query = "Update TransactionCategory " +
                             "Set Name = @Name" +
-                            "Where CategoryId = @Id";
+                            "Where CategoryID = @Id";
                         using SqlCommand cmd = new SqlCommand(query, connection);
 
                         cmd.Parameters.AddWithValue("@Name", transactionCategoryDto.Name);
+                        cmd.Parameters.AddWithValue("@Id", id);
 
                         connection.Open();
 
@@ -152,7 +153,7 @@ namespace e_budget_app.Controllers
                 {
                     try
                     {
-                        string query = "Select * From TransactionCategory Where CategoryId = @Id";
+                        string query = "Select * From TransactionCategory Where CategoryID = @Id";
                         using SqlCommand cmd = new SqlCommand(query, connection);
                         cmd.Parameters.AddWithValue("@ID", id);
 
@@ -160,12 +161,19 @@ namespace e_budget_app.Controllers
 
                         using SqlDataReader sqlDataReader = cmd.ExecuteReader();
 
-                        TransactionCategory transactionCategory = new TransactionCategory
+                        if (sqlDataReader.Read())
                         {
-                            Id = (int)sqlDataReader["CategoryId"],
-                            Name = sqlDataReader["Name"].ToString()
-                        };
-                        return Ok(transactionCategory);
+                            TransactionCategory transactionCategory = new TransactionCategory
+                            {
+                                Id = (int)sqlDataReader["CategoryID"],
+                                Name = sqlDataReader["Name"].ToString()
+                            };
+                            return Ok(transactionCategory);
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -184,7 +192,7 @@ namespace e_budget_app.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteCategoryTransactionAtId([FromRoute] int id)
+        public IActionResult DeleteTransactionCategoryAtId([FromRoute] int id)
         {
             try
             {
@@ -192,9 +200,9 @@ namespace e_budget_app.Controllers
                 {
                     try
                     {
-                        string query = "Delete TransactionCategory Where CategoryId = @Id";
+                        string query = "Delete TransactionCategory Where CategoryID = @Id";
                         using SqlCommand cmd = new SqlCommand(query, connection);
-                        cmd.Parameters.AddWithValue("@ID", id);
+                        cmd.Parameters.AddWithValue("@Id", id);
 
                         connection.Open();
 
