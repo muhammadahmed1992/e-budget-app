@@ -51,7 +51,7 @@ namespace e_budget_app.Controllers
                     }
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -113,23 +113,99 @@ namespace e_budget_app.Controllers
                             "Set Name = @Name" +
                             "Where CategoryId = @Id";
                         using SqlCommand cmd = new SqlCommand(query, connection);
-                        connection.Open();
 
                         cmd.Parameters.AddWithValue("@Name", transactionCategoryDto.Name);
 
                         connection.Open();
 
-                        Int32? categoryId = (Int32)cmd.ExecuteScalar();
-
-                        if (categoryId != null)
+                        if (cmd.ExecuteNonQuery() > 0)
                         {
-                            return Ok($"Category Updated at ID: {categoryId}");
+                            return Ok(new { status = "200", message = $"Category Updated at {id}" });
                         }
                         else
                         {
-                            return BadRequest("Category Updation Failed");
+                            return NotFound();
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(ex.Message);
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
+        [HttpGet("{id}")]
+        public IActionResult GetTransactionCategoryAtId([FromRoute] int id)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    try
+                    {
+                        string query = "Select * From TransactionCategory Where CategoryId = @Id";
+                        using SqlCommand cmd = new SqlCommand(query, connection);
+                        cmd.Parameters.AddWithValue("@ID", id);
+
+                        connection.Open();
+
+                        using SqlDataReader sqlDataReader = cmd.ExecuteReader();
+
+                        TransactionCategory transactionCategory = new TransactionCategory
+                        {
+                            Id = (int)sqlDataReader["CategoryId"],
+                            Name = sqlDataReader["Name"].ToString()
+                        };
+                        return Ok(transactionCategory);
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(ex.Message);
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteCategoryTransactionAtId([FromRoute] int id)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    try
+                    {
+                        string query = "Delete TransactionCategory Where CategoryId = @Id";
+                        using SqlCommand cmd = new SqlCommand(query, connection);
+                        cmd.Parameters.AddWithValue("@ID", id);
+
+                        connection.Open();
+
+                        if (cmd.ExecuteNonQuery() > 0)
+                        {
+                            return Ok(new { status = "200", message = $"Category Deleted at {id}" });
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
                     }
                     catch (Exception ex)
                     {
